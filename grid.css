@@ -1,4 +1,7 @@
-/* Recreated from adityaaggarwal.com/grid.css (archived April 2019) */
+/* Based on adityaaggarwal.com/grid.css (archived April 2019).
+   The grid is a wrapping flexbox: 4 columns on wide screens, then 3, then 2,
+   then 1 on phones. Columns are set by --cols at each breakpoint. */
+
 div {
   display: flex;
   flex-wrap: wrap;
@@ -8,11 +11,19 @@ body {
   margin: 16px;
 }
 
-a {
-  font-size: 16px;
-  display: inline-block;
+#container {
+  --cols: 1;
+  --gap: 16px;
+  gap: var(--gap);
   margin-bottom: 16px;
-  width: calc(100%);
+}
+
+#container a {
+  /* Each tile takes an equal share of the row, minus its part of the gaps */
+  flex: 0 0 calc((100% - (var(--cols) - 1) * var(--gap)) / var(--cols));
+  min-width: 0;
+  font-size: 16px;
+  display: block;
   text-align: center;
 }
 
@@ -22,9 +33,9 @@ figure {
 }
 
 a img {
-  display: inline-block;
+  display: block;
   width: 100%;
-  /* Thumbnails now come from mixed sources, so keep every tile the same shape */
+  /* Thumbnails come from mixed sources, so keep every tile the same shape */
   aspect-ratio: 16 / 9;
   object-fit: cover;
   background: #000;
@@ -51,8 +62,10 @@ figure:hover .overlay {
   position: absolute;
   top: 50%;
   left: 50%;
+  width: 90%;
   transform: translate(-50%, -50%);
   text-align: center;
+  justify-content: center;
   font-family: "Open Sans", sans-serif;
   text-transform: uppercase;
 }
@@ -69,28 +82,23 @@ a:hover img {
   box-shadow: rgba(0, 0, 0, 0.2) 2px 2px 4px 0.5px;
 }
 
-a:nth-of-type(2n) {
-  margin-right: 0px;
+/* 2 columns */
+@media screen and (min-width: 600px) {
+  #container { --cols: 2; }
+  .text { font-size: 20px; }
+  .footer { font-size: 26px; }
 }
 
-@media screen and (min-width: 65em) {
-  .text {
-    font-size: 14px;
-  }
-  .footer {
-    font-size: 20px;
-  }
-  a {
-    width: calc(25% - 12px);
-    margin-right: 16px;
-  }
-  img {
-    width: 100%;
-  }
-  a:nth-of-type(2n) {
-    margin-right: 16px;
-  }
-  a:nth-of-type(4n) {
-    margin-right: 0px;
-  }
+/* 3 columns */
+@media screen and (min-width: 900px) {
+  #container { --cols: 3; }
+  .text { font-size: 16px; }
+  .footer { font-size: 22px; }
+}
+
+/* 4 columns */
+@media screen and (min-width: 1200px) {
+  #container { --cols: 4; }
+  .text { font-size: 14px; }
+  .footer { font-size: 20px; }
 }
