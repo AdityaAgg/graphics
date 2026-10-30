@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset=utf-8>
+	<title>Inverse Kinematics Chain</title>
+	<style>
+		body {
+			margin: 0;
+		}
+
+		canvas {
+			width: 100%;
+			height: 100%
+		}
+	</style>
+</head>
+
+<body>
+	<script src="js/three.min.js"></script>
+	<script>
+		window.addEventListener('mousemove', onMouseMove, false);
+
+		var mouse = new THREE.Vector3(0, -1, 5);
+
+		function onMouseMove(event) {
+
+			// calculate mouse position in normalized device coordinates
+			// (-1 to +1) for both components
+			mouse.x = ((event.clientX / window.innerWidth) * 2 - 1) * 5;
+			mouse.y = (-(event.clientY / window.innerHeight) * 2 + 1) * 5;
+
+		}
+
+		window.addEventListener( 'mousemove', onMouseMove, false );
+
+
+
+		function updateIK(geometryNode, point) {
+			if (geometryNode.children.length > 4) {
+				geometryNode.parent.updateMatrixWorld();
+				geometryNode.updateMatrixWorld();
+				updateIK(geometryNode.children[4].children[0], point);
+			}
+
+			let subtractVector = new THREE.Vector3();
+
+
+			var vectorA = geometryNode.children[0].geometry.vertices[1].clone();
+			var vectorB = geometryNode.children[0].geometry.vertices[2].clone();
+
+			vectorA.applyMatrix4(geometryNode.matrixWorld)
+			vectorB.applyMatrix4(geometryNode.matrixWorld)
+
+			subtractVector = subtractVector.subVectors(vectorA, vectorB);
+			let currDirection = subtractVector.normalize();
+
+			let subtractVectorTwo = new THREE.Vector3()
+			subtractVector = subtractVectorTwo.subVectors(vectorA, point);
+			let expectedDirection = subtractVectorTwo.normalize();
+
+			//rotation transformations
+			let rota = Math.atan2(currDirection.y, currDirection.x)
+			if (isNaN(rota)) {
+				theta = 0;
+			}
+			let rotb = Math.atan2(expectedDirection.y, expectedDirection.x)
+			if (isNaN(rotb)) {
+				theta = 0;
+			}
+			let theta = rotb - rota;
+
+
+			geometryNode.rotateZ(theta * 0.1)
+			//group.rotateOnAxis(new THREE.Vector3(0, 0, 1), theta);
+
+		}
+		// Our Javascript will go here.
+		var scene = new THREE.Scene();
+		var camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
+		var material = new THREE.LineBasicMaterial({
+			color: 0xffffff
+		});
+		const MINI = ((2.0/3.0) / (1 + Math.sqrt(3.0)));
+		const LARGE = MINI * Math.sqrt(3.0);
+
+
+		const boneCount = 12;
+		const boneLength = LARGE/3;
+		let lastGroup = null;
+		var root = new THREE.Group();
+		for (let i = 0; i < boneCount; ++i) {
+
+
+
+			// let vecAMiddle = new THREE.Vector3(0, (START - (i * (2.0 - MINI)) + MINI), -5);
+			// let vecBMiddle  = new THREE.Vector3(0, START - (i * (2.0 - MINI)), -5);
+			// let vecCMiddle = new THREE.Vector3(0, START - (i * (2.0 - MINI)) - LARGE, -5);
+
+			let vecAMiddle = new THREE.Vector3(0, MINI, 0);
+			let vecBMiddle = new THREE.Vector3(0, 0, 0);
+			let vecCMiddle = new THREE.Vector3(0, -1 * LARGE, 0);
+
+			//let vecBRight  = new THREE.Vector3(MINI, START - (i * (2.0 - MINI)), -5);
+			//let vecBLeft  = new THREE.Vector3(-1 * MINI, START - (i * (2.0 - MINI)), -5);
+			let vecBRight = new THREE.Vector3(MINI, 0, 0);
+			let vecBLeft = new THREE.Vector3(-1 * MINI, 0, 0);
+
+
+			var middleGeometry = new THREE.Geometry();
+			middleGeometry.vertices.push(vecAMiddle);
+			middleGeometry.vertices.push(vecBMiddle);
+			middleGeometry.vertices.push(vecCMiddle);
+			var l1 = new THREE.Line(middleGeometry, material);
+
+
+
+			var rightGeometry = new THREE.Geometry();
+			rightGeometry.vertices.push(vecAMiddle, vecBRight, vecCMiddle);
+			var l2 = new THREE.Line(rightGeometry, material);
+
+			var leftGeometry = new THREE.Geometry();
+			leftGeometry.vertices.push(vecAMiddle, vecBLeft, vecCMiddle);
+			var l3 = new THREE.Line(leftGeometry, material);
+
+			var cross = new THREE.Geometry();
+			cross.vertices.push(vecBLeft, vecBRight);
+			var l4 = new THREE.Line(cross, material);
+
+			var geometryNode = new THREE.Group();
+			geometryNode.add(l1);
+			geometryNode.add(l2);
+			geometryNode.add(l3);
+			geometryNode.add(l4);
+
+			var translateNode;
+
+			if (i != 0) {
+				translateNode = new THREE.Group();
+				translateNode.translateY(-1 * LARGE);
+			} else {
+				translateNode = root;
+				console.log(translateNode);
+			}
+			translateNode.add(geometryNode);
+
+			if (lastGroup != null) {
+				lastGroup.add(translateNode);
+			}
+			lastGroup = geometryNode;
+		}
+		root.translateZ(-5);
+		root.translateY(4);
+		//console.log(root);
+		scene.add(root);
+
+
+
+
+
+
+
+
+
+		var renderer = new THREE.WebGLRenderer();
+		renderer.setSize(window.innerWidth, window.innerHeight);
+
+
+		function animate() {
+
+		//	setTimeout( function() {
+				updateIK(root.children[0], mouse);
+				requestAnimationFrame(animate);
+
+		//	}, 1000 / 20 );
+
+			renderer.render(scene, camera);
+
+		}
+		animate();
+
+		document.body.appendChild(renderer.domElement);
+	</script>
+</body>
+
+</html>

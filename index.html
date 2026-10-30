@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Graphics — Aditya Aggarwal</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans">
+  <link rel="stylesheet" type="text/css" href="grid.css">
+</head>
+<body>
+
+<div id="container"></div>
+
+<center>
+<div class="footer">
+
+"All of learning deserves to be fun and interactive" - Saty Raghavachary
+
+</div>
+</center>
+
+<script>
+  // Recreated from adityaaggarwal.com/graphics.html (archived April 2019).
+  // Each tile now links straight to a live WebGL demo, its YouTube video, or its Medium write-up.
+  function yt(id) { return "https://i.ytimg.com/vi/" + id + "/hqdefault.jpg"; }
+
+  var projectArray = [
+    { name: "Particle System",
+      img: "img/particle-system.png",
+      href: "particle-system/" },
+    { name: "3D Style Transfer",
+      img: "https://miro.medium.com/v2/resize:fit:990/1*WmTDhUwnwMcNnckISl_LAQ.png",
+      href: "https://adityaaggarwal1.medium.com/method-3-596efd64ed19" },
+    { name: "Mass Spring Simulation",
+      img: yt("krBNR4rIAGc"),
+      href: "https://youtu.be/krBNR4rIAGc" },
+    { name: "Ray Tracer",
+      img: yt("Qay55igRLz8"),
+      href: "https://www.youtube.com/watch?v=Qay55igRLz8" },
+    { name: "Denoising MC Renderings (Review)",
+      img: "https://miro.medium.com/v2/resize:fit:1036/1*tCRVNon7UZe4x8fK5wtxkQ.png",
+      href: "https://adityaaggarwal1.medium.com/removing-noise-from-images-a31dbee0adcb" },
+    { name: "Virtual Worlds",
+      img: yt("VXkgPkWP7ac"),
+      href: "https://www.youtube.com/watch?v=VXkgPkWP7ac" },
+    { name: "Perlin Noise Cube",
+      img: yt("dQhmXlhoqjY"),
+      href: "https://youtu.be/dQhmXlhoqjY" },
+    { name: "Catmull-Rom Splines",
+      img: yt("esHzEFH52b0"),
+      href: "https://youtu.be/esHzEFH52b0" },
+    { name: "IK Solver",
+      img: "img/ik.png",
+      href: "ik-solver/" },
+    { name: "Height Maps",
+      img: yt("NRoEACrSeiM"),
+      href: "https://youtu.be/NRoEACrSeiM" },
+    { name: "Marching Squares",
+      img: yt("-k56XleiQog"),
+      href: "https://youtu.be/-k56XleiQog" }
+  ];
+
+  var container = document.getElementById("container");
+  projectArray.forEach(function (project) {
+    var a = document.createElement("a");
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.href = project.href;
+    a.innerHTML =
+      '<figure><div class="overlay"><div class="text"></div></div>' +
+      '<img alt=""></figure>';
+    a.querySelector(".text").textContent = project.name;
+    var img = a.querySelector("img");
+    img.src = project.img;
+    img.alt = project.name;
+    container.appendChild(a);
+  });
+</script>
+
+</body>
+</html>

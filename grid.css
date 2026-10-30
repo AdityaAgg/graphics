@@ -1,0 +1,96 @@
+/* Recreated from adityaaggarwal.com/grid.css (archived April 2019) */
+div {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+body {
+  margin: 16px;
+}
+
+a {
+  font-size: 16px;
+  display: inline-block;
+  margin-bottom: 16px;
+  width: calc(100%);
+  text-align: center;
+}
+
+figure {
+  margin: 0px;
+  position: relative;
+}
+
+a img {
+  display: inline-block;
+  width: 100%;
+  /* Thumbnails now come from mixed sources, so keep every tile the same shape */
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: #000;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0px;
+  height: 100%;
+  width: 100%;
+  opacity: 1;
+  transition: 0.5s;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+figure:hover .overlay {
+  opacity: 0;
+}
+
+.text {
+  color: white;
+  font-size: 28px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  font-family: "Open Sans", sans-serif;
+  text-transform: uppercase;
+}
+
+.footer {
+  font-size: 36px;
+  line-height: 2em;
+  font-family: "Open Sans", sans-serif;
+  display: block;
+  width: 100%;
+}
+
+a:hover img {
+  box-shadow: rgba(0, 0, 0, 0.2) 2px 2px 4px 0.5px;
+}
+
+a:nth-of-type(2n) {
+  margin-right: 0px;
+}
+
+@media screen and (min-width: 65em) {
+  .text {
+    font-size: 14px;
+  }
+  .footer {
+    font-size: 20px;
+  }
+  a {
+    width: calc(25% - 12px);
+    margin-right: 16px;
+  }
+  img {
+    width: 100%;
+  }
+  a:nth-of-type(2n) {
+    margin-right: 16px;
+  }
+  a:nth-of-type(4n) {
+    margin-right: 0px;
+  }
+}
