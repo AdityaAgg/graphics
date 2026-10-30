@@ -1,26 +1,71 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
 	<meta charset=utf-8>
-	<title>Inverse Kinematics Chain</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>IK Solver — Aditya Aggarwal</title>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans">
 	<style>
 		body {
 			margin: 0;
+			overflow: hidden;
+			background: #000;
 		}
 
 		canvas {
-			width: 100%;
-			height: 100%
+			display: block;
+			touch-action: none;
+			cursor: crosshair;
+		}
+
+		.panel {
+			position: fixed;
+			top: 16px;
+			left: 16px;
+			max-width: 300px;
+			padding: 14px 16px;
+			background: rgba(0, 0, 0, 0.65);
+			border: 1px solid rgba(255, 255, 255, 0.25);
+			color: #fff;
+			font: 14px/1.5 "Open Sans", sans-serif;
+			user-select: none;
+		}
+		.panel h1 {
+			font-size: 14px;
+			font-weight: normal;
+			text-transform: uppercase;
+			letter-spacing: 0.08em;
+			margin: 0 0 6px;
+		}
+		.panel ul {
+			margin: 0;
+			padding-left: 18px;
+		}
+		.panel a {
+			color: #fff;
+		}
+		.panel .back {
+			display: inline-block;
+			margin-top: 8px;
+			font-size: 12px;
+			opacity: 0.8;
 		}
 	</style>
 </head>
 
 <body>
+	<div class="panel">
+		<h1>IK Solver</h1>
+		<ul>
+			<li><strong>Move your mouse</strong> around the screen. The chain is pinned at the top, and its free end reaches toward your cursor.</li>
+			<li>On a phone or tablet, <strong>drag your finger</strong> instead.</li>
+			<li>Each of the 12 joints rotates a little every frame to close the gap, so fast moves show it catching up.</li>
+		</ul>
+		<a class="back" href="../">← All graphics projects</a>
+	</div>
 	<script src="js/three.min.js"></script>
 	<script>
-		window.addEventListener('mousemove', onMouseMove, false);
-
 		var mouse = new THREE.Vector3(0, -1, 5);
 
 		function onMouseMove(event) {
@@ -32,7 +77,9 @@
 
 		}
 
-		window.addEventListener( 'mousemove', onMouseMove, false );
+		// Pointer events cover mouse, pen and touch (the original was mouse-only)
+		window.addEventListener('pointermove', onMouseMove, false);
+		window.addEventListener('pointerdown', onMouseMove, false);
 
 
 
@@ -61,14 +108,11 @@
 
 			//rotation transformations
 			let rota = Math.atan2(currDirection.y, currDirection.x)
-			if (isNaN(rota)) {
-				theta = 0;
-			}
 			let rotb = Math.atan2(expectedDirection.y, expectedDirection.x)
-			if (isNaN(rotb)) {
+			let theta = rotb - rota;
+			if (isNaN(theta)) {
 				theta = 0;
 			}
-			let theta = rotb - rota;
 
 
 			geometryNode.rotateZ(theta * 0.1)
@@ -162,8 +206,15 @@
 
 
 
-		var renderer = new THREE.WebGLRenderer();
+		var renderer = new THREE.WebGLRenderer({ antialias: true });
+		renderer.setPixelRatio(window.devicePixelRatio || 1);
 		renderer.setSize(window.innerWidth, window.innerHeight);
+
+		window.addEventListener('resize', function () {
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+			renderer.setSize(window.innerWidth, window.innerHeight);
+		});
 
 
 		function animate() {

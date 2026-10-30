@@ -9,6 +9,10 @@ let delta = [];
 
 //constants
 const SIZE = 1000;
+function hideHint() {
+  var hint = document.getElementById("hint");
+  if (hint) hint.classList.add("faded");
+}
 main();
 
 
@@ -37,14 +41,20 @@ main();
 //
 function main() {
   const canvas = document.querySelector("#glCanvas");
-  var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-  var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-  canvas.style.height = h;
-
-  canvas.style.width =  w;
-
   // Initialize the GL context
   const gl = canvas.getContext("webgl");
+
+  // Match the drawing buffer to the on-screen size so points render crisply
+  function resizeCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    canvas.style.width = window.innerWidth + "px";
+    canvas.style.height = window.innerHeight + "px";
+    canvas.width = Math.round(window.innerWidth * dpr);
+    canvas.height = Math.round(window.innerHeight * dpr);
+    if (gl) gl.viewport(0, 0, canvas.width, canvas.height);
+  }
+  resizeCanvas();
+  window.addEventListener("resize", resizeCanvas);
 
   // Only continue if WebGL is available and working
   if (!gl) {
@@ -52,103 +62,37 @@ function main() {
     return;
   }
 
-  var handleStart = function(evt) {
-    evt.preventDefault();
-    //alert("touch start");
-    var touches = evt.changedTouches;
-
-    for (var i = 0; i < touches.length; i++) {
-      let touchObj = copyTouch(gl.canvas.clientWidth, gl.canvas.clientHeight, touches[i]);
-
-
-      attractionPts.push(touchObj);
-      var color = colorForTouch(touches[i]);
-
-
-
-    }
-
+  // Pointer events cover mouse, pen and touch. The original listened for touch
+  // only, so on a desktop there was no way to interact and the demo looked static.
+  // Each pressed pointer becomes an attraction point; releasing removes it.
+  function toAttractor(evt) {
+    return copyTouch(canvas.clientWidth, canvas.clientHeight,
+      { identifier: evt.pointerId, pageX: evt.clientX, pageY: evt.clientY });
   }
 
-
-
-  let handleEnd = function(evt) {
+  canvas.addEventListener("pointerdown", function (evt) {
     evt.preventDefault();
+    canvas.setPointerCapture(evt.pointerId);
+    attractionPts.push(toAttractor(evt));
+    hideHint();
+  });
 
-    //var ctx = el.getContext("2d");
-    var touches = evt.changedTouches;
+  canvas.addEventListener("pointermove", function (evt) {
+    var idx = ongoingTouchIndexById(evt.pointerId);
+    if (idx >= 0) attractionPts.splice(idx, 1, toAttractor(evt));
+  });
 
-    for (var i = 0; i < touches.length; i++) {
-      var color = colorForTouch(touches[i]);
-      var idx = ongoingTouchIndexById(touches[i].identifier);
-
-      if (idx >= 0) {
-
-        attractionPts.splice(idx, 1);  // remove it; we're done
-
-      } else {
-        console.log("can't figure out which touch to end");
-      }
-    }
+  function release(evt) {
+    var idx = ongoingTouchIndexById(evt.pointerId);
+    if (idx >= 0) attractionPts.splice(idx, 1);
   }
+  canvas.addEventListener("pointerup", release);
+  canvas.addEventListener("pointercancel", release);
 
-
-
-  let handleMove = function(evt) {
-    evt.preventDefault();
-    //var el = document.getElementsByTagName("canvas")[0];
-    //var ctx = el.getContext("2d");
-    var touches = evt.changedTouches;
-
-    for (var i = 0; i < touches.length; i++) {
-      var color = colorForTouch(touches[i]);
-      var idx = ongoingTouchIndexById(touches[i].identifier);
-
-      if (idx >= 0) {
-        //console.log("continuing touch "+idx);
-        //ctx.beginPath();
-        //console.log("ctx.moveTo(" + ongoingTouches[idx].pageX + ", " + ongoingTouches[idx].pageY + ");");
-        //ctx.moveTo(ongoingTouches[idx].pageX, ongoingTouches[idx].pageY);
-        //console.log("ctx.lineTo(" + touches[i].pageX + ", " + touches[i].pageY + ");");
-        //ctx.lineTo(touches[i].pageX, touches[i].pageY);
-        //ctx.lineWidth = 4;
-        //ctx.strokeStyle = color;
-        //ctx.stroke();
-
-        attractionPts.splice(idx, 1, copyTouch(gl.canvas.clientWidth , gl.canvas.clientHeight, touches[i]));  // swap in the new touch record
-      } else {
-        console.log("can't figure out which touch to continue");
-      }
-    }
-    console.log("move touch");
-  }
-
-
-  let handleCancel = function(evt) {
-    evt.preventDefault();
-    var touches = evt.changedTouches;
-
-    for (var i = 0; i < touches.length; i++) {
-      var idx = ongoingTouchIndexById(touches[i].identifier);
-      attractionPts.splice(idx, 1);  // remove it; we're done
-    }
-  }
-
-
-
-  handleStart.bind(canvas, gl);
-  handleEnd.bind(canvas, gl);
-  handleMove.bind(canvas, gl);
-  handleCancel.bind(canvas, gl);
-
-
-
-
-  canvas.addEventListener("touchstart", handleStart, false);
-
-  canvas.addEventListener("touchend", handleEnd, false);
-  canvas.addEventListener("touchmove", handleMove, false);
-  canvas.addEventListener("touchcancel", handleCancel, false);
+  // The R key scatters the particles back into a disc
+  window.addEventListener("keydown", function (evt) {
+    if (evt.key === "r" || evt.key === "R") resetParticles();
+  });
 
   //canvas.addEventListener('click', simulateClick);
 
@@ -168,7 +112,7 @@ function main() {
     void main() {
       gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
 
-      gl_PointSize = 1.0;
+      gl_PointSize = 2.0;
     }
   `;
 
@@ -201,12 +145,14 @@ function main() {
    var then = 0;
 
    initParticles(400, 400);
+   const buffers = initBuffers(gl);
    // Draw the scene repeatedly
    function render(now) {
      for(let i = 0; i<delta.length; ++i) {
        updateParticle(i);
      }
-     const buffers = initBuffers(gl);
+     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(position), gl.DYNAMIC_DRAW);
      now *= 0.001;  // convert to seconds
      const deltaTime = now - then;
      then = now;
@@ -280,10 +226,6 @@ function colorForTouch(touch) {
 //found from : https://developer.mozilla.org/en-US/docs/Web/API/Touch_events
 
 function copyTouch(width, height, touch) {
-  console.log(touch.identifier);
-
-
-  console.log((touch.pageY/height * 400) - 200);
   let ratio = width/height;
   return { identifier: touch.identifier, location: vec2.fromValues( (touch.pageX/width * 400) * ratio - (400*ratio/2) , ((touch.pageY/height * 400) - 200) * -1)};
 }
@@ -313,9 +255,9 @@ function initParticles(width, height) {
 
   for(let i = 0; i < SIZE; ++i) {
 
-    r = radius * Math.sqrt(Math.random())
+    let r = radius * Math.sqrt(Math.random());
 
-    theta = Math.random() * Math.PI * 2;
+    let theta = Math.random() * Math.PI * 2;
 
     position.push((r * Math.cos(theta)));
     position.push((r * Math.sin(theta) + 1));
@@ -323,6 +265,13 @@ function initParticles(width, height) {
     delta.push(vec2.fromValues(0.0, 0.0));
 
   }
+}
+
+//scatter the particles back into their starting disc
+function resetParticles() {
+  position.length = 0;
+  delta.length = 0;
+  initParticles(400, 400);
 }
 
 //update the particles
@@ -484,7 +433,7 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
   {
     const offset = 0;
 
-    gl.drawArrays(gl.POINTS, offset, SIZE);
+    gl.drawArrays(gl.POINTS, offset, position.length / 2);
   }
 }
 

@@ -1,12 +1,80 @@
-
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Particle System — Aditya Aggarwal</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans">
 <style>
-
 * {
   margin: 0;
 }
- </style>
-<canvas id="glCanvas" ></canvas>
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+}
+canvas {
+  display: block;
+  touch-action: none;   /* let the demo, not the browser, handle drags */
+  cursor: crosshair;
+}
+.panel {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  max-width: 300px;
+  padding: 14px 16px;
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  font: 14px/1.5 "Open Sans", sans-serif;
+  user-select: none;
+}
+.panel h1 {
+  font-size: 14px;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+.panel ul {
+  padding-left: 18px;
+}
+.panel a {
+  color: #fff;
+}
+.panel .back {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 12px;
+  opacity: 0.8;
+}
+.panel.faded {
+  opacity: 0.35;
+  transition: opacity 0.6s;
+}
+.panel.faded:hover {
+  opacity: 1;
+}
+</style>
+</head>
+<body>
+
+<div class="panel" id="hint">
+  <h1>Particle System</h1>
+  <ul>
+    <li><strong>Click and hold</strong> anywhere to pull the particles toward that point.</li>
+    <li><strong>Drag</strong> while holding to swirl them around.</li>
+    <li>On a phone or tablet, <strong>touch with several fingers</strong> for multiple attractors.</li>
+    <li>Press <strong>R</strong> to scatter them again.</li>
+  </ul>
+  <a class="back" href="../">← All graphics projects</a>
+</div>
+
+<canvas id="glCanvas"></canvas>
 
 <script src="gl-matrix-min.js"></script>
 <script src="particleSystemScript.js"></script>
+</body>
+</html>
